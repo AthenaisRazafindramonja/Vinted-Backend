@@ -13,7 +13,7 @@ app.use(userRoutes);
 const offerRoutes = require("./routes/offer");
 app.use(offerRoutes);
 
-mongoose.connect("mongodb://localhost/vinted-2", {
+mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
