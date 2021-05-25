@@ -50,8 +50,56 @@ router.get("/offers", async (req, res) => {
       filters.product_name = new RegExp(req.query.title, "i");
     }
 
-    const offers = await Offer.find().select("product_name product_price");
+    if (req.query.priceMin) {
+      filters.product_price = {
+        $gte: req.query.priceMin,
+      };
+    }
+
+    if (req.query.priceMax) {
+      if (filters.product_price) {
+        filters.product_price.$lte = req.query.priceMax;
+      } else {
+        filters.product_price = {
+          $lte: req.query.priceMax,
+        };
+      }
+    }
+    let sort = {};
+
+    if (req.query.sort === "price-asc") {
+      sort = { product_price: 1 };
+    } else if (req.query.sort === "price-desc") {
+      sort = { product_price: -1 };
+    }
+
+    const limit = Number(req.query.limit);
+    let page;
+    if (Number(req.query.page) > 0) {
+      page = (Number(req.query.page) - 1) * limit;
+    } else {
+      page = 0;
+    }
+
+    const offers = await Offer.find(filters)
+      .sort(sort)
+      .populate("owner", "account")
+      .skip(page)
+      .limit(limit);
+
     res.status(200).json(offers);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.get("/offer/:id", async (req, res) => {
+  try {
+    const offer = await Offer.findById(req.params.id).populate(
+      "owner",
+      "account"
+    );
+    res.status(200).json(offer);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
