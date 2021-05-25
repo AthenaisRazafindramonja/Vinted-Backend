@@ -3,6 +3,7 @@ const router = express.Router();
 const uid2 = require("uid2");
 const SHA256 = require("crypto-js/sha256");
 const encBase64 = require("crypto-js/enc-base64");
+const cloudinary = require("cloudinary").v2;
 
 const User = require("../models/User");
 
@@ -28,6 +29,17 @@ router.post("/user/signup", async (req, res) => {
           hash: hash,
           salt: salt,
         });
+
+        if (req.files.avatar) {
+          const getAvatar = await cloudinary.uploader.upload(
+            req.files.avatar.path,
+            {
+              folder: `/vinted-2/profil/${newUser.account.username}`,
+            }
+          );
+          newUser.account.avatar = getAvatar;
+        }
+
         await newUser.save();
         res.status(200).json({
           _id: newUser._id,

@@ -43,4 +43,18 @@ router.post("/offer/publish", isAuthenticated, async (req, res) => {
   }
 });
 
+router.get("/offers", async (req, res) => {
+  try {
+    let filters = {};
+    if (req.query.title) {
+      filters.product_name = new RegExp(req.query.title, "i");
+    }
+
+    const offers = await Offer.find().select("product_name product_price");
+    res.status(200).json(offers);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 module.exports = router;
